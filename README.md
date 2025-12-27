@@ -7,7 +7,7 @@ Go REST API with Gin, clean architecture, and TDD-first design. Runs in Docker C
 - **Nginx** (`:8080`) → reverse proxy to Go API
 - **Go API** (`:8080` in containers)
   - handler → service → repository layers
-  - Gin router, `/health`, and `users` CRUD
+  - Gin router, `/health`, and CRUD-style endpoints (users, books, members, borrow)
 - **MySQL 8.4** (`:3306`) with migrations
 - **Redis 7.4** (`:6379`)
 
@@ -26,6 +26,8 @@ cd ziyadbook
 cp .env.example .env
 # Edit .env if needed (defaults work for Docker)
 ```
+
+> Note: `.env` is **git-ignored**. Always create it from `.env.example` on your machine.
 
 ### 2) Production-like mode
 
@@ -72,10 +74,40 @@ make down
 ## API endpoints
 
 - `GET /health` – health check
+
+### Users
+
 - `POST /users` – create a user (`{"email":"…","name":"…"}`)
 - `GET /users/:id` – fetch a user by ID
 - `GET /users?limit=N` – list users (default limit 20)
+
+### Books
+
+- `GET /books?limit=N` – list books
+- `POST /books` – create a book (`{"title":"…","author":"…","stock":3}`)
+
+### Members
+
+- `GET /members?limit=N` – list members
+- `POST /members` – create a member (`{"name":"…","quota":5}`)
+
+### Borrowing
+
 - `POST /borrow` – borrow a book (`{"book_id":…,"member_id":…}`) with atomic stock/quota validation
+
+## Error response format
+
+All non-2xx errors return a standardized JSON:
+
+```json
+{
+  "message": "Stok buku habis",
+  "ziyad_error_code": "ZYD-ERR-001",
+  "trace_id": "<random-trace-id>"
+}
+```
+
+`trace_id` is a random string useful for tracing and logs.
 
 ## Development notes
 
