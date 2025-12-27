@@ -1,0 +1,29 @@
+# Binaries
+/go/api
+**/api
+
+# Go build cache
+**/bin/
+**/tmp/
+**/.tmp/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Vendor (if you ever use go mod vendor)
+/vendor/
+
+# Docker
+*.env
+.env.*
+.docker/

@@ -45,6 +45,7 @@ func TestUsersHandler_Create_BadBody(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Code)
+	require.Contains(t, w.Body.String(), "ziyad_error_code")
 }
 
 func TestUsersHandler_Create_OK(t *testing.T) {

@@ -27,13 +27,13 @@ func (h UsersHandler) Register(r gin.IRoutes) {
 func (h UsersHandler) create(c *gin.Context) {
 	var req createUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		WriteError(c, http.StatusBadRequest, "Invalid request body", "ZYD-ERR-100")
 		return
 	}
 
 	u, err := h.Svc.Create(c.Request.Context(), req.Email, req.Name)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		WriteError(c, http.StatusBadRequest, err.Error(), "ZYD-ERR-101")
 		return
 	}
 
@@ -43,17 +43,17 @@ func (h UsersHandler) create(c *gin.Context) {
 func (h UsersHandler) getByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		WriteError(c, http.StatusBadRequest, "Invalid user id", "ZYD-ERR-102")
 		return
 	}
 
 	u, ok, err := h.Svc.GetByID(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		WriteError(c, http.StatusBadRequest, err.Error(), "ZYD-ERR-103")
 		return
 	}
 	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		WriteError(c, http.StatusNotFound, "User tidak ditemukan", "ZYD-ERR-104")
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h UsersHandler) list(c *gin.Context) {
 
 	users, err := h.Svc.List(c.Request.Context(), limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal"})
+		WriteError(c, http.StatusInternalServerError, "Terjadi kesalahan internal", "ZYD-ERR-199")
 		return
 	}
 

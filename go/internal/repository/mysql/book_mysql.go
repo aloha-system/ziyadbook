@@ -47,3 +47,24 @@ func (r BookMySQL) DecrementStock(ctx context.Context, id uint64, delta uint) (b
 	}
 	return affected > 0, nil
 }
+
+func (r BookMySQL) List(ctx context.Context, limit int) ([]domain.Book, error) {
+	rows, err := r.DB.QueryContext(ctx, "SELECT id, title, author, stock, created_at FROM books ORDER BY id DESC LIMIT ?", limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var books []domain.Book
+	for rows.Next() {
+		var b domain.Book
+		if err := rows.Scan(&b.ID, &b.Title, &b.Author, &b.Stock, &b.CreatedAt); err != nil {
+			return nil, err
+		}
+		books = append(books, b)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return books, nil
+}

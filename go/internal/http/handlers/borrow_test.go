@@ -37,6 +37,10 @@ func TestBorrowHandler_Borrow_BadBody(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, http.StatusBadRequest, w.Code)
+	body := w.Body.String()
+	require.Contains(t, body, `"message":"Invalid request body"`)
+	require.Contains(t, body, `"ziyad_error_code":"ZYD-ERR-000"`)
+	require.Contains(t, body, "\"trace_id\"")
 }
 
 func TestBorrowHandler_Borrow_Success(t *testing.T) {
@@ -66,13 +70,14 @@ func TestBorrowHandler_Borrow_ErrorMapping(t *testing.T) {
 		name           string
 		serviceErr     error
 		expectedStatus int
-		expectedBody   string
+		msg            string
+		code           string
 	}{
-		{"book not found", service.ErrBookNotFound, http.StatusNotFound, `"error":"book not found"`},
-		{"member not found", service.ErrMemberNotFound, http.StatusNotFound, `"error":"member not found"`},
-		{"insufficient stock", service.ErrInsufficientStock, http.StatusConflict, `"error":"insufficient stock"`},
-		{"insufficient quota", service.ErrInsufficientQuota, http.StatusConflict, `"error":"insufficient quota"`},
-		{"internal", errors.New("boom"), http.StatusInternalServerError, `"error":"internal"`},
+		{"book not found", service.ErrBookNotFound, http.StatusNotFound, "Buku tidak ditemukan", "ZYD-ERR-002"},
+		{"member not found", service.ErrMemberNotFound, http.StatusNotFound, "Member tidak ditemukan", "ZYD-ERR-003"},
+		{"insufficient stock", service.ErrInsufficientStock, http.StatusConflict, "Stok buku habis", "ZYD-ERR-001"},
+		{"insufficient quota", service.ErrInsufficientQuota, http.StatusConflict, "Kuota peminjaman member habis", "ZYD-ERR-004"},
+		{"internal", errors.New("boom"), http.StatusInternalServerError, "Terjadi kesalahan internal", "ZYD-ERR-999"},
 	}
 
 	for _, tt := range tests {
@@ -88,7 +93,10 @@ func TestBorrowHandler_Borrow_ErrorMapping(t *testing.T) {
 			r.ServeHTTP(w, req)
 
 			require.Equal(t, tt.expectedStatus, w.Code)
-			require.Contains(t, w.Body.String(), tt.expectedBody)
+			body := w.Body.String()
+			require.Contains(t, body, `"message":"`+tt.msg+`"`)
+			require.Contains(t, body, `"ziyad_error_code":"`+tt.code+`"`)
+			require.Contains(t, body, "\"trace_id\"")
 		})
 	}
 }

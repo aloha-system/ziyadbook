@@ -10,6 +10,8 @@ import (
 type Deps struct {
 	Users   service.UserService
 	Borrows service.BorrowService
+	Books   service.BookService
+	Members service.MemberService
 }
 
 func NewRouter(env string, deps Deps) *gin.Engine {
@@ -24,6 +26,8 @@ func NewRouter(env string, deps Deps) *gin.Engine {
 	(handlers.HealthHandler{}).Register(api)
 	(handlers.UsersHandler{Svc: deps.Users}).Register(api)
 	(handlers.BorrowHandler{Svc: deps.Borrows}).Register(api)
+	(handlers.BooksHandler{Svc: deps.Books}).Register(api)
+	(handlers.MembersHandler{Svc: deps.Members}).Register(api)
 
 	return r
 }

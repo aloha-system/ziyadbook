@@ -47,3 +47,24 @@ func (r MemberMySQL) DecrementQuota(ctx context.Context, id uint64, delta uint) 
 	}
 	return affected > 0, nil
 }
+
+func (r MemberMySQL) List(ctx context.Context, limit int) ([]domain.Member, error) {
+	rows, err := r.DB.QueryContext(ctx, "SELECT id, name, quota, created_at FROM members ORDER BY id DESC LIMIT ?", limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var members []domain.Member
+	for rows.Next() {
+		var m domain.Member
+		if err := rows.Scan(&m.ID, &m.Name, &m.Quota, &m.CreatedAt); err != nil {
+			return nil, err
+		}
+		members = append(members, m)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return members, nil
+}

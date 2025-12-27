@@ -8,8 +8,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	apihttp "ziyadbook/internal/http"
 	"ziyadbook/internal/config"
+	apihttp "ziyadbook/internal/http"
 	pmysql "ziyadbook/internal/platform/mysql"
 	predis "ziyadbook/internal/platform/redis"
 	repomysql "ziyadbook/internal/repository/mysql"
@@ -50,7 +50,6 @@ func Run() error {
 	}
 	defer redisClient.Close()
 
-
 	// Repositories
 	userRepo := repomysql.UserMySQL{DB: db}
 	bookRepo := repomysql.BookMySQL{DB: db}
@@ -59,15 +58,19 @@ func Run() error {
 
 	// Services
 	userSvc := service.UserService{Repo: userRepo}
+	bookSvc := service.BookService{Repo: bookRepo}
 	borrowSvc := service.BorrowService{
 		BookRepo:   bookRepo,
 		MemberRepo: memberRepo,
 		BorrowRepo: borrowRepo,
 	}
+	memberSvc := service.MemberService{Repo: memberRepo}
 
 	r := apihttp.NewRouter(cfg.Env, apihttp.Deps{
 		Users:   userSvc,
 		Borrows: borrowSvc,
+		Books:   bookSvc,
+		Members: memberSvc,
 	})
 
 	srv := &http.Server{

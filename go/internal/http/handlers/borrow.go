@@ -1,16 +1,23 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 
+	"ziyadbook/internal/domain"
 	"ziyadbook/internal/service"
 )
 
+// BorrowService is the minimal interface BorrowHandler depends on.
+// It is implemented by service.BorrowService and by test fakes.
+type BorrowService interface {
+	Borrow(ctx context.Context, bookID, memberID uint64) (domain.Borrow, error)
+}
+
 type BorrowHandler struct {
-	Svc service.BorrowService
+	Svc BorrowService
 }
 
 type borrowRequest struct {
@@ -25,7 +32,7 @@ func (h BorrowHandler) Register(r gin.IRoutes) {
 func (h BorrowHandler) borrow(c *gin.Context) {
 	var req borrowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid body"})
+		WriteError(c, http.StatusBadRequest, "Invalid request body", "ZYD-ERR-000")
 		return
 	}
 
@@ -33,15 +40,15 @@ func (h BorrowHandler) borrow(c *gin.Context) {
 	if err != nil {
 		switch err {
 		case service.ErrBookNotFound:
-			c.JSON(http.StatusNotFound, gin.H{"error": "book not found"})
+			WriteError(c, http.StatusNotFound, "Buku tidak ditemukan", "ZYD-ERR-002")
 		case service.ErrMemberNotFound:
-			c.JSON(http.StatusNotFound, gin.H{"error": "member not found"})
+			WriteError(c, http.StatusNotFound, "Member tidak ditemukan", "ZYD-ERR-003")
 		case service.ErrInsufficientStock:
-			c.JSON(http.StatusConflict, gin.H{"error": "insufficient stock"})
+			WriteError(c, http.StatusConflict, "Stok buku habis", "ZYD-ERR-001")
 		case service.ErrInsufficientQuota:
-			c.JSON(http.StatusConflict, gin.H{"error": "insufficient quota"})
+			WriteError(c, http.StatusConflict, "Kuota peminjaman member habis", "ZYD-ERR-004")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal"})
+			WriteError(c, http.StatusInternalServerError, "Terjadi kesalahan internal", "ZYD-ERR-999")
 		}
 		return
 	}

@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -70,6 +69,27 @@ func (f *fakeBorrowRepo) Create(ctx context.Context, b domain.Borrow) (domain.Bo
 	return b, nil
 }
 
+func (f *fakeBookRepo) List(ctx context.Context, limit int) ([]domain.Book, error) {
+	out := make([]domain.Book, 0, len(f.books))
+	for _, b := range f.books {
+		out = append(out, b)
+		if len(out) >= limit {
+			break
+		}
+	}
+	return out, nil
+}
+
+func (f *fakeMemberRepo) List(ctx context.Context, limit int) ([]domain.Member, error) {
+	out := make([]domain.Member, 0, len(f.members))
+	for _, m := range f.members {
+		out = append(out, m)
+		if len(out) >= limit {
+			break
+		}
+	}
+	return out, nil
+}
 func TestBorrowService_Borrow_Success(t *testing.T) {
 	bookRepo := &fakeBookRepo{books: map[uint64]domain.Book{
 		1: {ID: 1, Title: "Go", Author: "A", Stock: 3},
